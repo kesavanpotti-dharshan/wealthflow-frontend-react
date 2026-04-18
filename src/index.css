@@ -1,0 +1,50 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  /* Sophisticated Dark Palette */
+  --color-brand-bg: #0c0c0e;
+  --color-brand-surface: #18181b;
+  --color-brand-surface-alt: #27272a;
+  --color-brand-accent: #2dd4bf;
+  --color-brand-border: #333336;
+  --color-brand-text-primary: #fafafa;
+  --color-brand-text-secondary: #a1a1aa;
+  --color-brand-text-muted: #52525b;
+}
+
+@layer base {
+  body {
+    @apply bg-brand-bg text-brand-text-primary font-sans antialiased;
+  }
+}
+
+.premium-card {
+  @apply bg-brand-surface border border-brand-border rounded-xl overflow-hidden;
+}
+
+.data-grid-header {
+  @apply text-[11px] font-semibold text-brand-text-muted uppercase tracking-wider py-3 border-b border-brand-border px-4 bg-black/10;
+}
+
+.data-grid-row {
+  @apply text-[13px] text-brand-text-secondary border-b border-brand-border hover:bg-white/5 transition-colors px-4 py-3 cursor-pointer;
+}
+
+/* Scrollbar styling for dark theme */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-brand-border rounded-full hover:bg-brand-text-muted transition-colors;
+}
+
