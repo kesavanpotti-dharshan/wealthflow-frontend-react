@@ -15,6 +15,8 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   ShieldAlert,
+  Sun,
+  Moon,
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -141,6 +143,15 @@ const StatCard = ({
 );
 
 export default function App() {
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('wealthflow-theme');
+      if (saved === 'light' || saved === 'dark') return saved;
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    return 'dark';
+  });
+
   const [activeView, setActiveView] = useState<AppView>('overview');
   const [overviewData, setOverviewData] = useState<OverviewData | null>(null);
   const [moneyFlow, setMoneyFlow] = useState<MoneyFlowRecord[]>([]);
@@ -151,6 +162,24 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showQuickAdd, setShowQuickAdd] = useState(false);
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('wealthflow-theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => setTheme(prev => prev === 'light' ? 'dark' : 'light');
+
+  const chartColors = useMemo(() => ({
+    accent: theme === 'dark' ? '#19C2B3' : '#0F9F9A',
+    success: theme === 'dark' ? '#22C55E' : '#16A34A',
+    error: theme === 'dark' ? '#EF4444' : '#DC2626',
+    warning: theme === 'dark' ? '#F59E0B' : '#D97706',
+    muted: theme === 'dark' ? '#9FB0BD' : '#64748B',
+    border: theme === 'dark' ? '#2B3B47' : '#D7E0E7',
+    surface: theme === 'dark' ? '#16212B' : '#FFFFFF',
+    text: theme === 'dark' ? '#ECFDFB' : '#0F172A',
+  }), [theme]);
 
   const loadAllData = async () => {
     setLoading(true);
@@ -227,38 +256,38 @@ export default function App() {
                 label="Net Worth"
                 value={overviewData.netWorth}
                 icon={TrendingUp}
-                accentClass="bg-brand-accent text-brand-accent"
+                accentClass="bg-brand-accent/10 text-brand-accent"
               />
             </div>
             <StatCard
               label="Assets"
               value={overviewData.totalAssets}
               icon={Wallet}
-              accentClass="bg-blue-400 text-blue-400"
+              accentClass="bg-brand-success/10 text-brand-success"
             />
             <StatCard
               label="Liabilities"
               value={overviewData.totalLiabilities}
               icon={CreditCard}
-              accentClass="bg-amber-400 text-amber-400"
+              accentClass="bg-brand-error/10 text-brand-error"
             />
             <StatCard
               label="Monthly Inflow"
               value={overviewData.totalInflow}
               icon={ArrowUpRight}
-              accentClass="bg-emerald-400 text-emerald-400"
+              accentClass="bg-brand-success/10 text-brand-success"
             />
             <StatCard
               label="Monthly Outflow"
               value={overviewData.totalOutflow}
               icon={ArrowDownRight}
-              accentClass="bg-rose-400 text-rose-400"
+              accentClass="bg-brand-error/10 text-brand-error"
             />
             <StatCard
               label="Upcoming Obligations"
               value={overviewData.upcomingObligations}
               icon={CalendarClock}
-              accentClass="bg-violet-400 text-violet-400"
+              accentClass="bg-brand-warning/10 text-brand-warning"
             />
           </div>
 
@@ -273,30 +302,31 @@ export default function App() {
                     <AreaChart data={wealthData?.timeline || []}>
                       <defs>
                         <linearGradient id="colorNetWorthV2" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#2dd4bf" stopOpacity={0.22} />
-                          <stop offset="95%" stopColor="#2dd4bf" stopOpacity={0} />
+                          <stop offset="5%" stopColor={chartColors.accent} stopOpacity={0.22} />
+                          <stop offset="95%" stopColor={chartColors.accent} stopOpacity={0} />
                         </linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#333336" />
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartColors.border} />
                       <XAxis
                         dataKey="date"
                         axisLine={false}
                         tickLine={false}
-                        tick={{ fontSize: 10, fill: '#71717a' }}
+                        tick={{ fontSize: 10, fill: chartColors.muted }}
                       />
                       <YAxis hide />
                       <Tooltip
                         contentStyle={{
-                          backgroundColor: '#18181b',
+                          backgroundColor: chartColors.surface,
                           borderRadius: '12px',
-                          border: '1px solid #333336',
+                          border: `1px solid ${chartColors.border}`,
+                          color: chartColors.text,
                         }}
                         formatter={(value: number) => [formatCurrency(value), 'Net Worth']}
                       />
                       <Area
                         type="monotone"
                         dataKey="netWorth"
-                        stroke="#2dd4bf"
+                        stroke={chartColors.accent}
                         strokeWidth={2}
                         fillOpacity={1}
                         fill="url(#colorNetWorthV2)"
@@ -375,14 +405,18 @@ export default function App() {
                         stroke="none"
                       >
                         {(wealthData?.assets || []).map((entry, index) => (
-                          <Cell key={`asset-cell-${index}`} fill={entry.color} />
+                          <Cell
+                            key={`asset-cell-${index}`}
+                            fill={[chartColors.accent, '#334155', '#475569', '#64748b', '#94a3b8'][index % 5]}
+                          />
                         ))}
                       </Pie>
                       <Tooltip
                         contentStyle={{
-                          backgroundColor: '#18181b',
+                          backgroundColor: chartColors.surface,
                           borderRadius: '12px',
-                          border: '1px solid #333336',
+                          border: `1px solid ${chartColors.border}`,
+                          color: chartColors.text,
                         }}
                         formatter={(value: number) => [formatCurrency(value), 'Value']}
                       />
@@ -551,18 +585,20 @@ export default function App() {
           <div className="h-[280px]">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={wealthData?.timeline || []}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#333336" />
-                <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#71717a' }} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartColors.border} />
+                <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: chartColors.muted }} />
                 <YAxis hide />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: '#18181b',
+                    backgroundColor: chartColors.surface,
                     borderRadius: '12px',
-                    border: '1px solid #333336',
+                    border: `1px solid ${chartColors.border}`,
+                    color: chartColors.text,
+                    fontSize: '12px',
                   }}
                   formatter={(value: number) => [formatCurrency(value), 'Net Worth']}
                 />
-                <Line type="monotone" dataKey="netWorth" stroke="#2dd4bf" strokeWidth={2.5} dot={false} />
+                <Line type="monotone" dataKey="netWorth" stroke={chartColors.accent} strokeWidth={2.5} dot={false} />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -621,26 +657,26 @@ export default function App() {
         subtitle="Outstanding debts, balances, due dates, and minimum payment burden."
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <StatCard
-          label="Total Liabilities"
-          value={overviewData?.totalLiabilities || 0}
-          icon={CreditCard}
-          accentClass="bg-amber-400 text-amber-400"
-        />
-        <StatCard
-          label="Minimum Payments"
-          value={totalMinimumPayments}
-          icon={Landmark}
-          accentClass="bg-rose-400 text-rose-400"
-        />
-        <StatCard
-          label="Accounts"
-          value={liabilities.length}
-          icon={Wallet}
-          accentClass="bg-blue-400 text-blue-400"
-        />
-      </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <StatCard
+            label="Total Liabilities"
+            value={overviewData?.totalLiabilities || 0}
+            icon={CreditCard}
+            accentClass="bg-brand-error/10 text-brand-error"
+          />
+          <StatCard
+            label="Minimum Payments"
+            value={totalMinimumPayments}
+            icon={Landmark}
+            accentClass="bg-brand-error/10 text-brand-error"
+          />
+          <StatCard
+            label="Accounts"
+            value={liabilities.length}
+            icon={Wallet}
+            accentClass="bg-brand-accent/10 text-brand-accent"
+          />
+        </div>
 
       <div className="premium-card overflow-hidden">
         <div className="px-6 py-4 border-b border-brand-border flex justify-between items-center bg-black/10">
@@ -712,17 +748,17 @@ export default function App() {
                 </span>
                 <h4 className="font-bold text-brand-text-primary mt-1">{item.title}</h4>
               </div>
-              <div
-                className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase ${
-                  item.status === 'paid'
-                    ? 'bg-emerald-500/10 text-emerald-400'
-                    : item.status === 'overdue'
-                    ? 'bg-rose-500/10 text-rose-400'
-                    : 'bg-amber-500/10 text-amber-400'
-                }`}
-              >
-                {item.status}
-              </div>
+                <div
+                  className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase ${
+                    item.status === 'paid'
+                      ? 'bg-brand-success/10 text-brand-success'
+                      : item.status === 'overdue'
+                      ? 'bg-brand-error/10 text-brand-error'
+                      : 'bg-brand-warning/10 text-brand-warning'
+                  }`}
+                >
+                  {item.status}
+                </div>
             </div>
 
             <div className="space-y-4">
@@ -764,20 +800,21 @@ export default function App() {
           <div className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={reportData?.monthlyTrend || []}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#333336" />
-                <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#71717a' }} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#71717a' }} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartColors.border} />
+                <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: chartColors.muted }} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: chartColors.muted }} />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: '#18181b',
+                    backgroundColor: chartColors.surface,
                     borderRadius: '12px',
-                    border: '1px solid #333336',
+                    border: `1px solid ${chartColors.border}`,
+                    color: chartColors.text,
                   }}
                   formatter={(value: number) => formatCurrency(value)}
                 />
                 <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px', fontSize: '10px' }} />
-                <Bar dataKey="inflow" fill="#2dd4bf" radius={[4, 4, 0, 0]} name="Inflow" />
-                <Bar dataKey="outflow" fill="#f43f5e" radius={[4, 4, 0, 0]} name="Outflow" />
+                <Bar dataKey="inflow" fill={chartColors.success} radius={[4, 4, 0, 0]} name="Inflow" />
+                <Bar dataKey="outflow" fill={chartColors.error} radius={[4, 4, 0, 0]} name="Outflow" />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -799,15 +836,16 @@ export default function App() {
                   {(reportData?.categoryDistribution || []).map((entry, index) => (
                     <Cell
                       key={`report-cell-${index}`}
-                      fill={['#2dd4bf', '#3b82f6', '#f59e0b', '#f43f5e', '#a78bfa'][index % 5]}
+                      fill={[chartColors.accent, '#334155', '#475569', '#64748b', '#94a3b8'][index % 5]}
                     />
                   ))}
                 </Pie>
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: '#18181b',
+                    backgroundColor: chartColors.surface,
                     borderRadius: '12px',
-                    border: '1px solid #333336',
+                    border: `1px solid ${chartColors.border}`,
+                    color: chartColors.text,
                   }}
                   formatter={(value: number) => formatCurrency(value)}
                 />
@@ -838,7 +876,7 @@ export default function App() {
             <div className="flex justify-between items-end">
               <span className="text-xs text-brand-text-muted">Liability Accounts</span>
               <div className="text-right">
-                <span className="text-lg font-bold text-blue-400">{liabilities.length}</span>
+                <span className="text-lg font-bold text-brand-error">{liabilities.length}</span>
                 <p className="text-[10px] text-brand-text-muted">Tracked accounts</p>
               </div>
             </div>
@@ -883,7 +921,7 @@ export default function App() {
                 <p className="text-sm font-bold text-brand-text-primary">Google Apps Script API</p>
                 <p className="text-xs text-brand-text-muted">Use your deployed web app URL here.</p>
               </div>
-              <div className="bg-emerald-400/10 text-emerald-400 px-2 py-1 rounded text-[10px] font-black uppercase tracking-widest">
+              <div className="bg-brand-success/10 text-brand-success px-2 py-1 rounded text-[10px] font-black uppercase tracking-widest">
                 Connected
               </div>
             </div>
@@ -953,6 +991,13 @@ export default function App() {
             {activeView === 'moneyFlow' ? 'Money Flow' : activeView}
           </div>
           <div className="flex items-center gap-6">
+            <button
+              onClick={toggleTheme}
+              className="p-2 text-brand-text-muted hover:text-brand-text-primary transition-colors hover:bg-brand-surface rounded-lg"
+              title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+            >
+              {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
+            </button>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-brand-text-muted" size={14} />
               <input
@@ -974,7 +1019,7 @@ export default function App() {
             </div>
           ) : error ? (
             <div className="min-h-[60vh] flex flex-col items-center justify-center text-center max-w-md mx-auto space-y-6">
-              <div className="w-16 h-16 bg-rose-400/10 rounded-full flex items-center justify-center text-rose-400">
+              <div className="w-16 h-16 bg-brand-error/10 rounded-full flex items-center justify-center text-brand-error">
                 <ShieldAlert size={32} />
               </div>
               <div>

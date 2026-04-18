@@ -5,39 +5,72 @@
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 
-  /* Sophisticated Dark Palette */
-  --color-brand-bg: #0c0c0e;
-  --color-brand-surface: #18181b;
-  --color-brand-surface-alt: #27272a;
-  --color-brand-accent: #2dd4bf;
-  --color-brand-border: #333336;
-  --color-brand-text-primary: #fafafa;
-  --color-brand-text-secondary: #a1a1aa;
-  --color-brand-text-muted: #52525b;
+  /* WealthFlow Palette */
+  --color-brand-bg: var(--bg);
+  --color-brand-surface: var(--surface);
+  --color-brand-surface-alt: var(--surface-alt);
+  --color-brand-accent: var(--accent);
+  --color-brand-accent-hover: var(--accent-hover);
+  --color-brand-text-primary: var(--text-primary);
+  --color-brand-text-muted: var(--text-muted);
+  --color-brand-border: var(--border);
+  --color-brand-success: var(--success);
+  --color-brand-warning: var(--warning);
+  --color-brand-error: var(--error);
+}
+
+:root {
+  /* LIGHT MODE (Default) */
+  --bg: #F7FAFC;
+  --surface: #FFFFFF;
+  --surface-alt: #EDF2F7;
+  --accent: #0F9F9A;
+  --accent-hover: #0B7F7B;
+  --text-primary: #0F172A;
+  --text-muted: #64748B;
+  --border: #D7E0E7;
+  --success: #16A34A;
+  --warning: #D97706;
+  --error: #DC2626;
+}
+
+[data-theme='dark'] {
+  /* DARK MODE */
+  --bg: #0F1720;
+  --surface: #16212B;
+  --surface-alt: #223240;
+  --accent: #19C2B3;
+  --accent-hover: #0EA5A6;
+  --text-primary: #ECFDFB;
+  --text-muted: #9FB0BD;
+  --border: #2B3B47;
+  --success: #22C55E;
+  --warning: #F59E0B;
+  --error: #EF4444;
 }
 
 @layer base {
   body {
-    @apply bg-brand-bg text-brand-text-primary font-sans antialiased;
+    @apply bg-brand-bg text-brand-text-primary font-sans antialiased transition-colors duration-300;
   }
 }
 
 .premium-card {
-  @apply bg-brand-surface border border-brand-border rounded-xl overflow-hidden;
+  @apply bg-brand-surface border border-brand-border rounded-xl overflow-hidden transition-all duration-300;
 }
 
 .data-grid-header {
-  @apply text-[11px] font-semibold text-brand-text-muted uppercase tracking-wider py-3 border-b border-brand-border px-4 bg-black/10;
+  @apply text-[11px] font-bold text-brand-text-muted uppercase tracking-wider py-3 border-b border-brand-border px-4 bg-brand-surface-alt/30;
 }
 
 .data-grid-row {
-  @apply text-[13px] text-brand-text-secondary border-b border-brand-border hover:bg-white/5 transition-colors px-4 py-3 cursor-pointer;
+  @apply text-[13px] text-brand-text-muted border-b border-brand-border hover:bg-brand-accent/5 transition-colors px-4 py-3 cursor-pointer;
 }
 
-/* Scrollbar styling for dark theme */
+/* Scrollbar styling */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
